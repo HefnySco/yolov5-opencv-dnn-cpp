@@ -8,10 +8,11 @@ using namespace std;
 using namespace cv;
 using namespace dnn;
 
-int main()
+int main(int argc, char *argv[])
 {
-	string img_path = "./image/bus.jpg";
-	string model_path = "yolov5s.onnx";
+	string img_path = argc>1?argv[1]:"./image/zidane.jpg";
+    string model_path = argc>2?argv[2]:"yolov5s.onnx";
+    
 	//int num_devices = cv::cuda::getCudaEnabledDeviceCount();
 	//if (num_devices <= 0) {
 		//cerr << "There is no cuda." << endl;
