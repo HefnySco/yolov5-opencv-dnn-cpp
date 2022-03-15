@@ -37,13 +37,11 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 		netInputImg = resizeImg;
 	}
 	blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(104, 117,123), true, false);
-	//如果在其他设置没有问题的情况下但是结果偏差很大，可以尝试下用下面两句语句
+	//If there are no problems with other settings but the results are very different, you can try the following two sentences
 	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(0, 0,0), true, false);
 	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(114, 114,114), true, false);
 	net.setInput(blob);
 	std::vector<cv::Mat> netOutputImg;
-	//vector<string> outputLayerName{"345","403", "461","output" };
-	//net.forward(netOutputImg, outputLayerName[3]); //获取output的输出
 	net.forward(netOutputImg, net.getUnconnectedOutLayersNames());
 	std::vector<int> classIds;//结果id数组
 	std::vector<float> confidences;//结果每个id对应置信度数组
@@ -86,7 +84,7 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 		}
 	}
 
-	//执行非最大抑制以消除具有较低置信度的冗余重叠框（NMS）
+	//Perform non-maximal suppression to remove redundant overlapping boxes with lower confidence（NMS）
 	vector<int> nms_result;
 	NMSBoxes(boxes, confidences, classThreshold * boxThreshold, nmsThreshold, nms_result);
 	for (int i = 0; i < nms_result.size(); i++) {
