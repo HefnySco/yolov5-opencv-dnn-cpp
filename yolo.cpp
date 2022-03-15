@@ -36,7 +36,8 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 		SrcImg.copyTo(resizeImg(Rect(0, 0, col, row)));
 		netInputImg = resizeImg;
 	}
-	blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(104, 117,123), true, false);
+	blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(0,0,0), false, false);
+	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(104, 117,123), true, false);
 	//If there are no problems with other settings but the results are very different, you can try the following two sentences
 	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(0, 0,0), true, false);
 	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(114, 114,114), true, false);
