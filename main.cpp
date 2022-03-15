@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
 		cout << "read net ok!" << endl;
 	}
 	else {
+		cout << "model not found!" << endl;
 		return -1;
 	}
 
