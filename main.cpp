@@ -22,9 +22,9 @@ int main(int argc, char *argv[])
 		//cout << num_devices << endl;
 	//}
 
-	Yolo test;
+	Yolo yolo_detector;
 	Net net;
-	if (test.readModel(net, model_path, false)) {
+	if (yolo_detector.readModel(net, model_path, false)) {
 		cout << "read net ok!" << endl;
 	}
 	else {
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	//生成随机颜色
+	//Generate random colors
 	vector<Scalar> color;
 	srand(time(0));
 	for (int i = 0; i < 80; i++) {
@@ -41,11 +41,12 @@ int main(int argc, char *argv[])
 		int r = rand() % 256;
 		color.push_back(Scalar(b, g, r));
 	}
+	// Read Image
 	vector<Output> result;
 	Mat img = imread(img_path);
 
-	if (test.Detect(img, net, result)) {
-		test.drawPred(img, result, color);
+	if (yolo_detector.Detect(img, net, result)) {
+		yolo_detector.drawPred(img, result, color);
 
 	}
 	else {
