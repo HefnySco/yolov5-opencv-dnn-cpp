@@ -7,9 +7,9 @@
 //using namespace dnn;
 
 struct Output {
-	int id;//结果类别id
-	float confidence;//结果置信度
-	cv::Rect box;//矩形框
+	int id;//result category id
+	float confidence;//result confidence
+	cv::Rect box;//Rectangle
 };
 
 class Yolo {

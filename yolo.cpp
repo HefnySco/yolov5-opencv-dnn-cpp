@@ -11,6 +11,11 @@ bool Yolo::readModel(Net &net, string &netPath,bool isCuda = false) {
 	catch (const std::exception&) {
 		return false;
 	}
+
+	#ifndef YOLO_USE_CUDA
+	isCuda = false;
+	#endif
+	
 	//cuda
 	if (isCuda) {
 		net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
@@ -23,6 +28,8 @@ bool Yolo::readModel(Net &net, string &netPath,bool isCuda = false) {
 		net.setPreferableBackend(cv::dnn::DNN_BACKEND_DEFAULT);
 		net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
 	}
+	
+
 	return true;
 }
 
@@ -68,8 +75,9 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 						minMaxLoc(scores, 0, &max_class_socre, 0, &classIdPoint);
 						//max_class_socre = (float) pdata[i+5+5]; // you can choose to scan for certain objects only...not 100% correct as you may ignore other objects with higher probabilities.
 						max_class_socre = (float)max_class_socre; 
-						std::cout << className[classIdPoint.x] << " max_class_socre: " << max_class_socre << "	 box_score: " << box_score << std::endl;
-						
+						#ifdef DEBUG
+						//std::cout << className[classIdPoint.x] << " max_class_socre: " << max_class_socre << "	 box_score: " << box_score << std::endl;
+						#endif
 					if (box_score > boxThreshold) {
 						if (max_class_socre > classThreshold) {
 							//rect [x,y,w,h]
@@ -84,14 +92,22 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 							box_scores.push_back(box_score);
 							confidences.push_back(max_class_socre*box_score);
 							boxes.push_back(Rect(left, top, int(w*ratio_w), int(h*ratio_h)));
-							std::cout << "class:" << className[classIdPoint.x] << " 	max_class_socre:" << max_class_socre << std::endl;
 						}
 					}
 	}
 
+	#if defined DEBUG
+		std::cout << "boxes:" << boxes.size() << std::endl;
+	#endif
+
 	//Perform non-maximal suppression to remove redundant overlapping boxes with lower confidence（NMS）
 	vector<int> nms_result;
 	NMSBoxes(boxes, confidences, classThreshold * boxThreshold, nmsThreshold, nms_result);
+
+	#if defined DEBUG
+		std::cout << "Final boxes:" << boxes.size() << std::endl;
+	#endif
+
 	for (int i = 0; i < nms_result.size(); i++) {
 		int idx = nms_result[i];
 		Output result;
@@ -108,21 +124,39 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 }
 
 void Yolo::drawPred(Mat &img, vector<Output> result, vector<Scalar> color) {
-	for (int i = 0; i < result.size(); i++) {
+	vector<Output> ::iterator res;
+	for (res = result.begin();  res!= result.end(); ++res)
+	{
 		int left, top;
-		left = result[i].box.x;
-		top = result[i].box.y;
-		int color_num = i;
-		rectangle(img, result[i].box, color[result[i].id], 2, 8);
+		left = res->box.x;
+		top = res->box.y;
+		rectangle(img, res->box, color[res->id], 2, 8);
 
-		string label = className[result[i].id] +":" + to_string(result[i].confidence);
-							 
+		string label = className[res->id] +":" + to_string(res->confidence);
+		
+
 		int baseLine;
 		Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
 		top = max(top, labelSize.height);
 		//rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top + baseLine), Scalar(0, 255, 0), FILLED);
-		putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, color[result[i].id], 2);
+		putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, color[res->id], 2);
+		
 	}
+	// for (int i = 0; i < result.size(); i++) {
+	// 	int left, top;
+	// 	left = result[i].box.x;
+	// 	top = result[i].box.y;
+	// 	rectangle(img, result[i].box, color[result[i].id], 2, 8);
+
+	// 	string label = className[result[i].id] +":" + to_string(result[i].confidence);
+		
+
+	// 	int baseLine;
+	// 	Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+	// 	top = max(top, labelSize.height);
+	// 	//rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top + baseLine), Scalar(0, 255, 0), FILLED);
+	// 	putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, color[result[i].id], 2);
+	// }
 	imshow("Result", img);
 	imwrite("out.bmp", img);
 	waitKey();

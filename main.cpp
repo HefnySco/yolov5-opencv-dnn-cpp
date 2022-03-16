@@ -10,23 +10,27 @@ using namespace dnn;
 
 int main(int argc, char *argv[])
 {
-	cout << "OpenCV version : " << CV_VERSION << endl;
+	cout << "-----------------------------" << endl;
+ 	cout << "OpenCV version : " << CV_VERSION << endl;
   	cout << "Major version : " << CV_MAJOR_VERSION << endl;
   	cout << "Minor version : " << CV_MINOR_VERSION << endl;
   	cout << "Subminor version : " << CV_SUBMINOR_VERSION << endl;
-
- 
+	cout << "-----------------------------" << endl;
+ 	
 	string img_path = argc>1?argv[1]:"./image/zidane.jpg";
     string model_path = argc>2?argv[2]:"yolov5s.onnx";
     
-	//int num_devices = cv::cuda::getCudaEnabledDeviceCount();
-	//if (num_devices <= 0) {
-		//cerr << "There is no cuda." << endl;
-		//return -1;
-	//}
-	//else {
-		//cout << num_devices << endl;
-	//}
+	#ifdef YOLO_USE_CUDA
+	int num_devices = cv::cuda::getCudaEnabledDeviceCount();
+	if (num_devices <= 0) {
+		cerr << "There is no cuda." << endl;
+		return -1;
+	}
+	else {
+		cout << "There is " << num_devices << " cuda units."<< endl;
+		cout << "=============================" << endl;
+ 	}
+	#endif
 
 	Yolo yolo_detector;
 	Net net;
