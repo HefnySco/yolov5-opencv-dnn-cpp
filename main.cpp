@@ -10,6 +10,12 @@ using namespace dnn;
 
 int main(int argc, char *argv[])
 {
+	cout << "OpenCV version : " << CV_VERSION << endl;
+  	cout << "Major version : " << CV_MAJOR_VERSION << endl;
+  	cout << "Minor version : " << CV_MINOR_VERSION << endl;
+  	cout << "Subminor version : " << CV_SUBMINOR_VERSION << endl;
+
+ 
 	string img_path = argc>1?argv[1]:"./image/zidane.jpg";
     string model_path = argc>2?argv[2]:"yolov5s.onnx";
     
