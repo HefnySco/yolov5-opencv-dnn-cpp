@@ -25,6 +25,7 @@ bool Yolo::readModel(Net &net, string &netPath,bool isCuda = false) {
 	}
 	return true;
 }
+
 bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 	Mat blob;
 	int col = SrcImg.cols;
@@ -36,7 +37,11 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 		SrcImg.copyTo(resizeImg(Rect(0, 0, col, row)));
 		netInputImg = resizeImg;
 	}
-	blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(0,0,0), false, false);
+
+	
+	blobFromImage(netInputImg, blob, 1 / 455.0, cv::Size(netWidth, netHeight), cv::Scalar(0,0,0), true, false); // 1/455.0 gets better results
+	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(0,0,0), false, false); 
+
 	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(104, 117,123), true, false);
 	//If there are no problems with other settings but the results are very different, you can try the following two sentences
 	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(0, 0,0), true, false);
@@ -44,45 +49,44 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 	net.setInput(blob);
 	std::vector<cv::Mat> netOutputImg;
 	net.forward(netOutputImg, net.getUnconnectedOutLayersNames());
-	std::vector<int> classIds;//结果id数组
-	std::vector<float> confidences;//结果每个id对应置信度数组
-	std::vector<cv::Rect> boxes;//每个id矩形框
+	std::vector<int> classIds;//As a result, each id corresponds to a confidence array
+	std::vector<float> confidences;//As a result, each id corresponds to a confidence array
+	std::vector<float> box_scores;//As a result, each id corresponds to a confidence array
+	std::vector<cv::Rect> boxes;//Each id rectangle
+
 	float ratio_h = (float)netInputImg.rows / netHeight;
 	float ratio_w = (float)netInputImg.cols / netWidth;
 	int net_width = className.size() + 5;  //输出的网络宽度是类别数+5
-	float* pdata = (float*)netOutputImg[0].data;
-	for (int stride =0; stride < 3; stride++) {    //stride
-		int grid_x = (int)(netWidth / netStride[stride]);
-		int grid_y = (int)(netHeight / netStride[stride]);
-		for (int anchor = 0; anchor < 3; anchor++) { //anchors
-			const float anchor_w = netAnchors[stride][anchor * 2];
-			const float anchor_h = netAnchors[stride][anchor * 2 + 1];
-			for (int i = 0; i < grid_y; i++) {
-				for (int j = 0; j < grid_x; j++) {
-					float box_score = pdata[4]; //Sigmoid(pdata[4]);//获取每一行的box框中含有某个物体的概率
-					if (box_score > boxThreshold) {
-						cv::Mat scores(1, className.size(), CV_32FC1, pdata + 5);
+	Mat out = Mat(netOutputImg[0].size[1], netOutputImg[0].size[2], netOutputImg[0].size[3], netOutputImg[0].ptr<float>());
+    float* pdata = (float*)netOutputImg[0].data;
+	for (int r = 0; r < out.size[0]; ++r)
+    {				int i = net_width * r;
+					float box_score = pdata[i+4]; //Get the probability that the box of each row contains an object
+						cv::Mat scores(1, className.size(), CV_32FC1, &pdata[i+5]);
 						Point classIdPoint;
 						double max_class_socre;
 						minMaxLoc(scores, 0, &max_class_socre, 0, &classIdPoint);
-						max_class_socre = (float)max_class_socre; //Sigmoid((float)max_class_socre);
+						//max_class_socre = (float) pdata[i+5+5]; // you can choose to scan for certain objects only...not 100% correct as you may ignore other objects with higher probabilities.
+						max_class_socre = (float)max_class_socre; 
+						std::cout << className[classIdPoint.x] << " max_class_socre: " << max_class_socre << "	 box_score: " << box_score << std::endl;
+						
+					if (box_score > boxThreshold) {
 						if (max_class_socre > classThreshold) {
 							//rect [x,y,w,h]
-							float x = pdata[0];// (Sigmoid(pdata[0]) * 2.f - 0.5f + j) * netStride[stride];  //x
-							float y = pdata[1];// (Sigmoid(pdata[1]) * 2.f - 0.5f + i) * netStride[stride];   //y
-							float w = pdata[2];// powf(Sigmoid(pdata[2]) * 2.f, 2.f) * anchor_w;   //w
-							float h = pdata[3];// powf(Sigmoid(pdata[3]) * 2.f, 2.f) * anchor_h;  //h
+							float x = pdata[i+0];
+							float y = pdata[i+1];
+							float w = pdata[i+2];
+							float h = pdata[i+3];
+							
 							int left = (x - 0.5*w)*ratio_w;
 							int top = (y - 0.5*h)*ratio_h;
 							classIds.push_back(classIdPoint.x);
+							box_scores.push_back(box_score);
 							confidences.push_back(max_class_socre*box_score);
 							boxes.push_back(Rect(left, top, int(w*ratio_w), int(h*ratio_h)));
+							std::cout << "class:" << className[classIdPoint.x] << " 	max_class_socre:" << max_class_socre << std::endl;
 						}
 					}
-					pdata += net_width;//下一行
-				}
-			}
-		}
 	}
 
 	//Perform non-maximal suppression to remove redundant overlapping boxes with lower confidence（NMS）
@@ -119,8 +123,8 @@ void Yolo::drawPred(Mat &img, vector<Output> result, vector<Scalar> color) {
 		//rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top + baseLine), Scalar(0, 255, 0), FILLED);
 		putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, color[result[i].id], 2);
 	}
-	imshow("1", img);
-	//imwrite("out.bmp", img);
+	imshow("Result", img);
+	imwrite("out.bmp", img);
 	waitKey();
 	//destroyAllWindows();
 

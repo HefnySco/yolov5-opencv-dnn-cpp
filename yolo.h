@@ -26,9 +26,9 @@ private:
 	const float netStride[3] = { 8, 16.0,32 };
 	const int netWidth = 640;
 	const int netHeight = 640;
-	float nmsThreshold = 0.45;
-	float boxThreshold = 0.25;
-	float classThreshold = 0.25;
+	float nmsThreshold = 0.25; //0.25;
+	float boxThreshold = 0.1; //0.15;
+	float classThreshold = 0.25; 
 	std::vector<std::string> className = { "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
 		"fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
 		"elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
@@ -38,5 +38,5 @@ private:
 		"potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
 		"microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
 		"hair drier", "toothbrush" };
-
+	// std::vector<std::string> className = { "no_mask","masked" };
 };
