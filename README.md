@@ -9,9 +9,13 @@ Please note you need OpenCV>=4.5.0
 ### Compile
 
 `mkdir build`
+
 `cd build`
+
 `cmake ../`
+
 `make`
+
 
 ### How to Use
 
