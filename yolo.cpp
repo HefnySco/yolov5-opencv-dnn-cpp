@@ -1,12 +1,13 @@
 #include<stdio.h>
-#include"yolo.h";
+
+#include"yolo.hpp"
 using namespace std;
 using namespace cv;
 using namespace dnn;
 
-bool Yolo::readModel(Net &net, string &netPath,bool isCuda = false) {
+bool CYolo::readModel(const string &netPath, bool isCuda = false) {
 	try {
-		net = readNet(netPath);
+		m_net = readNet(netPath);
 	}
 	catch (const std::exception&) {
 		return false;
@@ -18,22 +19,22 @@ bool Yolo::readModel(Net &net, string &netPath,bool isCuda = false) {
 	
 	//cuda
 	if (isCuda) {
-		net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-		net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA_FP16);
+		m_net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+		m_net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA_FP16);
 
 	}
 	//cpu
 	else {
 		
-		net.setPreferableBackend(cv::dnn::DNN_BACKEND_DEFAULT);
-		net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+		m_net.setPreferableBackend(cv::dnn::DNN_BACKEND_DEFAULT);
+		m_net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
 	}
 	
 
 	return true;
 }
 
-bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
+bool CYolo::Detect(Mat &SrcImg, vector<Output> &output) {
 	Mat blob;
 	int col = SrcImg.cols;
 	int row = SrcImg.rows;
@@ -53,14 +54,14 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 	//If there are no problems with other settings but the results are very different, you can try the following two sentences
 	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(0, 0,0), true, false);
 	//blobFromImage(netInputImg, blob, 1 / 255.0, cv::Size(netWidth, netHeight), cv::Scalar(114, 114,114), true, false);
-	net.setInput(blob);
+	m_net.setInput(blob);
 	std::vector<cv::Mat> netOutputImg;
-	net.forward(netOutputImg, net.getUnconnectedOutLayersNames());
+	m_net.forward(netOutputImg, m_net.getUnconnectedOutLayersNames());
 	std::vector<int> classIds;//As a result, each id corresponds to a confidence array
 	std::vector<float> confidences;//As a result, each id corresponds to a confidence array
 	std::vector<float> box_scores;//As a result, each id corresponds to a confidence array
 	std::vector<cv::Rect> boxes;//Each id rectangle
-
+	
 	float ratio_h = (float)netInputImg.rows / netHeight;
 	float ratio_w = (float)netInputImg.cols / netWidth;
 	int net_width = className.size() + 5;  //输出的网络宽度是类别数+5
@@ -78,8 +79,8 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 						#ifdef DEBUG
 						//std::cout << className[classIdPoint.x] << " max_class_socre: " << max_class_socre << "	 box_score: " << box_score << std::endl;
 						#endif
-					if (box_score > boxThreshold) {
-						if (max_class_socre > classThreshold) {
+					if (box_score > m_boxThreshold) {
+						if (max_class_socre > m_classThreshold) {
 							//rect [x,y,w,h]
 							float x = pdata[i+0];
 							float y = pdata[i+1];
@@ -95,19 +96,16 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 						}
 					}
 	}
-
+	
 	#if defined DEBUG
 		std::cout << "boxes:" << boxes.size() << std::endl;
 	#endif
 
 	//Perform non-maximal suppression to remove redundant overlapping boxes with lower confidence（NMS）
 	vector<int> nms_result;
-	NMSBoxes(boxes, confidences, classThreshold * boxThreshold, nmsThreshold, nms_result);
-
-	#if defined DEBUG
-		std::cout << "Final boxes:" << boxes.size() << std::endl;
-	#endif
-
+	NMSBoxes(boxes, confidences, m_classThreshold * m_boxThreshold, m_nmsThreshold, nms_result);
+	
+	
 	for (int i = 0; i < nms_result.size(); i++) {
 		int idx = nms_result[i];
 		Output result;
@@ -116,6 +114,9 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 		result.box = boxes[idx];
 		output.push_back(result);
 	}
+	#if defined DEBUG
+		std::cout << "Final boxes:" << output.size() << std::endl;
+	#endif
 
 	if (output.size())
 		return true;
@@ -123,13 +124,13 @@ bool Yolo::Detect(Mat &SrcImg, Net &net, vector<Output> &output) {
 		return false;
 }
 
-void Yolo::drawPred(Mat &img, vector<Output> result, vector<Scalar> color) {
+void CYolo::drawPred(Mat &img, vector<Output> result, vector<Scalar> color) {
 	vector<Output> ::iterator res;
-	for (res = result.begin();  res!= result.end(); ++res)
+	
+	for (res = result.begin();  res!= result.end(); ++res, ++m_counter)
 	{
-		int left, top;
-		left = res->box.x;
-		top = res->box.y-5;
+		const int left = res->box.x;
+		int top = res->box.y-5;
 		rectangle(img, res->box, color[res->id], 1, 8);
 
 		string label = className[res->id] +":" + to_string(res->confidence);
@@ -140,9 +141,10 @@ void Yolo::drawPred(Mat &img, vector<Output> result, vector<Scalar> color) {
 		
 	}
 	
-	imshow("Result", img);
-	imwrite("out.bmp", img);
-	waitKey();
+	std::string filename = "out" + std::to_string(m_counter) + ".bmp";
+	//imshow("Result", img);
+	//imwrite(filename, img);
+	//waitKey(1);
 	//destroyAllWindows();
 
 }

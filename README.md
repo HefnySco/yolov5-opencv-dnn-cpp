@@ -19,12 +19,12 @@ Please note you need OpenCV>=4.5.0
 
 ### How to Use
 
-### `./build/yolo5_detector  ./image/bus.jpg  ./models/yolov5n.onnx`
+### `./build/yolo5_detector  -img="./image/bus.jpg"  -model="./models/yolov5n.onnx"`
 
 [![Bus with Yolo5 Nano](https://raw.githubusercontent.com/HefnySco/yolov5-opencv-dnn-cpp/master/results/bus.png "Bus with Yolo5 Nano")](https://raw.githubusercontent.com/HefnySco/yolov5-opencv-dnn-cpp/master/results/bus.png "Bus with Yolo5 Nano")
 
 
-### `./build/yolo5_detector  ./image/zidane.jpg  ./models/yolov5n.onnx`
+### `./build/yolo5_detector  -img="./image/zidane.jpg"  -model="./models/yolov5n.onnx"`
 
 [![Zidane Image with Yolo5 Nano](https://raw.githubusercontent.com/HefnySco/yolov5-opencv-dnn-cpp/master/results/zidane.png "Zidane Image with Yolo5 Nano")](https://raw.githubusercontent.com/HefnySco/yolov5-opencv-dnn-cpp/master/results/zidane.png "Zidane Image with Yolo5 Nano")
 

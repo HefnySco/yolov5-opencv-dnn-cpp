@@ -5,11 +5,30 @@
     "version": "0.2.0",
     "configurations": [ 
         {
-        "name": "(gdb) Launch andruav-client",
+        "name": "(gdb) Launch video_detector",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/yolo5_video_detector",
+        "args": ["-video=", "/dev/video0", "-model=", "../yolov5s.onnx", "-classes=", "../models/coco.txt"],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}/",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ]
+      },
+      {
+        "name": "(gdb) Launch image_detector",
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}/build/yolo5_detector",
-        "args": ["./image/zidane.jpg","./yolov5n.mask.onnx"],
+        "args": ["-img=", "../image/zidane.jpg", "-model=", "../yolov5s.onnx", "-classes=", "../models/coco.txt"],
         "stopAtEntry": true,
         "cwd": "${workspaceFolder}/",
         "environment": [],
