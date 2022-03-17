@@ -129,34 +129,17 @@ void Yolo::drawPred(Mat &img, vector<Output> result, vector<Scalar> color) {
 	{
 		int left, top;
 		left = res->box.x;
-		top = res->box.y;
-		rectangle(img, res->box, color[res->id], 2, 8);
+		top = res->box.y-5;
+		rectangle(img, res->box, color[res->id], 1, 8);
 
 		string label = className[res->id] +":" + to_string(res->confidence);
-		
-
 		int baseLine;
-		Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+		Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.1, 0.1, &baseLine);
 		top = max(top, labelSize.height);
-		//rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top + baseLine), Scalar(0, 255, 0), FILLED);
-		putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, color[res->id], 2);
+		putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.3, color[res->id], 1);
 		
 	}
-	// for (int i = 0; i < result.size(); i++) {
-	// 	int left, top;
-	// 	left = result[i].box.x;
-	// 	top = result[i].box.y;
-	// 	rectangle(img, result[i].box, color[result[i].id], 2, 8);
-
-	// 	string label = className[result[i].id] +":" + to_string(result[i].confidence);
-		
-
-	// 	int baseLine;
-	// 	Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-	// 	top = max(top, labelSize.height);
-	// 	//rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top + baseLine), Scalar(0, 255, 0), FILLED);
-	// 	putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, color[result[i].id], 2);
-	// }
+	
 	imshow("Result", img);
 	imwrite("out.bmp", img);
 	waitKey();
