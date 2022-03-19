@@ -31,7 +31,8 @@ class CYoloVideoDetector
         }
 
     public:
-        void start(const std::string& video_path, std::unique_ptr <CYolo> yolo);
+        void start(const std::string& video_path, std::unique_ptr <CYolo> yolo, const bool display, const bool save_file);
+        void startWithThreads(const std::string& video_path, std::unique_ptr <CYolo> yolo, const bool display, const bool save_file);
         void stop () {uninit();};
         void uninit ();
 

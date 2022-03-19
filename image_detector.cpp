@@ -13,6 +13,8 @@ std::string keys =
 	"{classes c|<none>|classes file path}"
 	"{boxThreshold bt|<none>|confidence is a point is a center of a valid object.}"
 	"{classThreshold ct|<none>|confidence is the point is center of this particular object.}"
+	"{no_display nd|<none>|use threads.}"
+	"{no_savefile nv|<none>|use threads.}"
 	// "{ @alias           |yolov5s.onnx | An alias name of model to extract preprocessing parameters from models.yml file. }"
     // "{@image        	|./image/zidane.jpg | image to recognize. }"
     ;
@@ -119,8 +121,11 @@ int main(int argc, char** argv)
 	vector<Output> result;
 	Mat img = imread(img_path);
 
+	bool display = parser.has("no_display")?false:true;
+	bool save_file = parser.has("no_savefile")?false:true;
 	if (yolo_detector.Detect(img, result)) {
-		yolo_detector.drawPred(img, result, color);
+		yolo_detector.drawPred(img, result, color, display, save_file);
+		if (display) cv::waitKey();
 
 	}
 	else {

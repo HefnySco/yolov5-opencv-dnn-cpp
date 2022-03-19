@@ -1,4 +1,3 @@
-#include <unistd.h>
 #include <stdio.h>
 #include <signal.h>
 #include <memory>
@@ -16,6 +15,9 @@ std::string keys =
 	"{classes c|<none>|classes file path}"
 	"{boxThreshold bt|<none>|confidence is a point is a center of a valid object.}"
 	"{classThreshold ct|<none>|confidence is the point is center of this particular object.}"
+	"{thread t|<none>|use threads.}"
+	"{no_display nd|<none>|use threads.}"
+	"{no_savefile nv|<none>|use threads.}"
 	// "{ @alias           |yolov5s.onnx | An alias name of model to extract preprocessing parameters from models.yml file. }"
     // "{@image        	|./image/zidane.jpg | image to recognize. }"
     ;
@@ -150,11 +152,18 @@ int main(int argc, char** argv)
 		color.push_back(cv::Scalar(b, g, r));
 	}
 	
-	
-	
-	yolo_detector.start(video_path, std::move(yolo));
+	bool display = parser.has("no_display")?false:true;
+	bool save_file = parser.has("no_savefile")?false:true;
+	if (parser.has("thread")){
+		yolo_detector.startWithThreads(video_path, std::move(yolo),display, save_file);
+	}
+	else
+	{
+		yolo_detector.start(video_path, std::move(yolo),display, save_file);
+	}
     
-	while (!m_exit) sleep (1000);
+	while (!m_exit) std::this_thread::sleep_for(std::chrono::milliseconds(1000) );
+    
     return 0;
 }
 

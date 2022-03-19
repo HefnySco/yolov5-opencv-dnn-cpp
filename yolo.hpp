@@ -20,7 +20,7 @@ public:
 
 	bool readModel(const std::string &netPath, bool isCuda) ;
 	bool Detect(cv::Mat &SrcImg, std::vector<Output> &output);
-	void drawPred(cv::Mat &img, std::vector<Output> result, std::vector<cv::Scalar> color);
+	void drawPred(cv::Mat &img, std::vector<Output> result, std::vector<cv::Scalar> color, const bool display, const bool save);
 	void setClasses(std::vector<std::string> &classes) {
 		className = classes;
 	}
