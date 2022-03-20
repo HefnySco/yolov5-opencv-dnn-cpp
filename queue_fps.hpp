@@ -57,6 +57,11 @@ class CQueueFPS: public std::queue<T>
                 this->pop();
         };
 
+        bool empty() {
+            std::lock_guard<std::mutex> lock(mutex);
+            return std::queue<T>::empty();
+        }
+
         
     public:
         unsigned int counter;

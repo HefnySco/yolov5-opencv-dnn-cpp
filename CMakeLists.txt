@@ -59,11 +59,12 @@ message ("CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER})
 
 #deceide debug or release
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
-message("CMAKE_BUILD_TYPE: ${BoldYellow}DEBUG${ColourReset}")
+message("CMAKE_BUILD_TYPE: ${BoldYellow} DEBUG ${ColourReset}")
 ELSEIF (CMAKE_BUILD_TYPE MATCHES RELEASE)
-message("CMAKE_BUILD_TYPE: ${BoldGreen}RELEASE${ColourReset}")
+message("CMAKE_BUILD_TYPE: ${BoldGreen} RELEASE ${ColourReset}")
 ENDIF()
 
+message("OpenCV_VERSION : ${BoldGreen} ${OpenCV_VERSION} ${ColourReset}")
 
 # OPTIONS
 option(YOLO_USE_CUDA "Use CUDA if available." ON)
@@ -108,7 +109,7 @@ ENDIF()
 
 IF(COMPILE_VIDEO)
 message("COMPILE_VIDEO mode ${BoldGreen} ON ${ColourReset}")
-add_executable( yolo5_video_detector video_detector.cpp ${TARGET_SRC} )
+add_executable( yolo5_video_detector ${TARGET_SRC} )
 target_link_libraries(yolo5_video_detector   Threads::Threads ${OpenCV_LIBS} )
 ELSE()
 message("COMPILE_VIDEO mode ${BoldRED} OFF ${ColourReset}")

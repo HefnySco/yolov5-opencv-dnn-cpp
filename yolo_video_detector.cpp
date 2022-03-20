@@ -51,26 +51,24 @@ void CYoloVideoDetector::start (const std::string& video_path, std::unique_ptr <
         video_capture_cap >> frame;
         if (!frame.empty())
         {
-            #if defined DEBUG
+            #ifdef DEBUG
 		        std::cout << "push frame" << std::endl;
                 std::cout << "GOT A FRAME" << std::endl;                                   
             #endif
-            // Process the frame
-            if (!frame.empty())
-            {
-                #if defined DEBUG
-		            std::cout << "PROCESS A FRAME" << std::endl;
-                #endif
+            
+            #ifdef DEBUG
+		        std::cout << "PROCESS A FRAME" << std::endl;
+            #endif
                             
-                m_yolo.get()->Detect(frame, result);
-                m_yolo.get()->drawPred(frame, result, color,display,save_file);
-                result.clear();
-            }
+            m_yolo.get()->Detect(frame, result);
+            m_yolo.get()->drawPred(frame, result, color,display,save_file);
+            result.clear();
+            
                         
         }
         else
         {
-            #if defined DEBUG
+            #ifdef DEBUG
 		        std::cout << "empty frame" << std::endl;
             #endif
         }
@@ -87,18 +85,9 @@ void CYoloVideoDetector::startWithThreads (const std::string& video_path, std::u
     m_yolo = std::move(yolo);
     m_process = true;
 
-    //Generate random colors
-	std::vector<cv::Scalar> color;
-	srand(time(0));
-	for (int i = 0; i < 80; i++) {
-		int b = rand() % 256;
-		int g = rand() % 256;
-		int r = rand() % 256;
-		color.push_back(cv::Scalar(b, g, r));
-	}
-
     // Frames capturing thread
     m_framesThread = std::thread([&](){
+        
         cv::VideoCapture video_capture_cap;
         video_capture_cap.open(video_path);
          if (video_capture_cap.isOpened()) {
@@ -120,24 +109,23 @@ void CYoloVideoDetector::startWithThreads (const std::string& video_path, std::u
                 video_capture_cap >> frame;
                 if (!frame.empty())
                 {
-                    #if defined DEBUG
+                    #ifdef DEBUG
 		                std::cout << "push frame" << std::endl;
 	                #endif
                     m_framesQueue.push(frame.clone());
                 }
                 else
                 {
-                    #if defined DEBUG
+                    #ifdef DEBUG
 		                std::cout << "empty frame" << std::endl;
 	                #endif
                 }
             }
             else
             {
-                #if defined DEBUG
+                #ifdef DEBUG
 		            std::cout << "BUSY WRITE" << std::endl;
                 #endif
-                sleep(1);
             }
         };
     });
@@ -145,6 +133,16 @@ void CYoloVideoDetector::startWithThreads (const std::string& video_path, std::u
 
     // Frames processing thread
     m_processingThread = std::thread([&](){
+        //Generate random colors
+        std::vector<cv::Scalar> color;
+        srand(time(0));
+        for (int i = 0; i < 80; i++) {
+            int b = rand() % 256;
+            int g = rand() % 256;
+            int r = rand() % 256;
+            color.push_back(cv::Scalar(b, g, r));
+        }
+
         std::vector<Output> result;
         while (m_process)
         {
@@ -154,7 +152,6 @@ void CYoloVideoDetector::startWithThreads (const std::string& video_path, std::u
                 if (!m_framesQueue.empty())
                 {
                     frame  = m_framesQueue.get();
-                    m_framesQueue.clear();
                     #if defined DEBUG
 		                std::cout << "GOT A FRAME" << std::endl;
                     #endif
